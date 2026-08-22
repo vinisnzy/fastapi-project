@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# C extensions
+*.so
+
+# IDE
+.vscode
+.idea/
+
+# Environments
+.env
+.env.local
+.env.*.local
+.venv
