@@ -3,10 +3,14 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 
-class JokeCreate(BaseModel):
+class JokeBase(BaseModel):
     setup: Annotated[str, Field(min_length=5, max_length=300)]
     punchline: Annotated[str, Field(min_length=1, max_length=100)]
     tag: Annotated[str, Field(min_length=1, max_length=50)]
+
+
+class JokeCreate(JokeBase):
+    pass
 
 
 class JokeUpdate(BaseModel):
@@ -15,8 +19,5 @@ class JokeUpdate(BaseModel):
     tag: Annotated[str | None, Field(min_length=1, max_length=50)] = None
 
 
-class JokeRead(BaseModel):
+class JokeRead(JokeBase):
     id: int
-    setup: str
-    punchline: str
-    tag: str
