@@ -1,6 +1,7 @@
 from random import choice
 
 from fastapi import APIRouter, HTTPException
+from fastapi_pagination import Page, paginate
 
 from fastapi_project.repository.jokes import data
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
@@ -8,20 +9,28 @@ from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
-@router.get("/", response_model=JokeRead)
-def get_joke(tag: str | None = None) -> JokeRead:
-    if tag is not None:
-        filtered: list[dict] = [j for j in data if j["tag"] == tag]
+@router.get("/", response_model=Page[JokeRead])
+def get_jokes(tag: str | None = None) -> Page[JokeRead]:
+    items = data if tag is None else [j for j in data if j["tag"] == tag]
 
-        if not filtered:
-            raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
-        return JokeRead.model_validate(choice(filtered))
-    return JokeRead.model_validate(choice(data))
+    if tag is not None and not items:
+        raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
+    return paginate(items)
+
+
+@router.get("/random", response_model=JokeRead)
+def get_random_joke(tag: str | None = None) -> JokeRead:
+    pool = data if tag is None else [j for j in data if j["tag"] == tag]
+
+    if not pool:
+        raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
+    return JokeRead.model_validate(choice(pool))
 
 
 @router.get("/{joke_id}", response_model=JokeRead)
 def get_joke_by_id(joke_id: int) -> JokeRead:
-    if joke_id < 0 or joke_id >= len(data):
+    joke = next((j for j in data if j["id"] == joke_id), None)
+    if joke is None:
         raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
     return JokeRead.model_validate(data[joke_id])
 
