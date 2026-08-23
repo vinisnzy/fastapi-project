@@ -3,31 +3,31 @@ from random import choice
 from fastapi import APIRouter, HTTPException
 
 from fastapi_project.repository.jokes import data
-from fastapi_project.schemas.jokes import JokeCreate, JokeRead
+from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
 @router.get("/", response_model=JokeRead)
-def get_joke(tag: str | None = None) -> dict:
+def get_joke(tag: str | None = None) -> JokeRead:
     if tag is not None:
         filtered: list[dict] = [j for j in data if j["tag"] == tag]
 
         if not filtered:
             raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
-        return choice(filtered)
-    return choice(data)
+        return JokeRead.model_validate(choice(filtered))
+    return JokeRead.model_validate(choice(data))
 
 
 @router.get("/{joke_id}", response_model=JokeRead)
-def get_joke_by_id(joke_id: int) -> dict:
+def get_joke_by_id(joke_id: int) -> JokeRead:
     if joke_id < 0 or joke_id >= len(data):
         raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
-    return data[joke_id]
+    return JokeRead.model_validate(data[joke_id])
 
 
-@router.post("/")
-def add_joke(joke: JokeCreate) -> dict:
+@router.post("/", status_code=201, response_model=JokeRead)
+def add_joke(joke: JokeCreate) -> JokeRead:
     new_joke = {
         "id": len(data),
         "setup": joke.setup,
@@ -35,4 +35,20 @@ def add_joke(joke: JokeCreate) -> dict:
         "tag": joke.tag,
     }
     data.append(new_joke)
-    return {"message": "Joke added!", "id": len(data) - 1, "joke": new_joke}
+    return JokeRead.model_validate(new_joke)
+
+
+@router.patch("/{joke_id}", response_model=JokeRead)
+def update_joke(joke_id: int, payload: JokeUpdate) -> JokeRead:
+    changes = payload.model_dump(exclude_unset=True)
+    if not changes:
+        raise HTTPException(status_code=400, detail="There are no fields to update")
+
+    joke = next((j for j in data if j["id"] == joke_id), None)
+    if joke is None:
+        raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
+
+    joke.update(
+        {k: v for k, v in changes.items() if k in {"setup", "punchline", "tag"}}
+    )
+    return JokeRead.model_validate(joke)
