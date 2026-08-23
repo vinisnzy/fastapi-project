@@ -1,0 +1,22 @@
+from typing import Annotated
+
+from pydantic import BaseModel, Field
+
+
+class JokeCreate(BaseModel):
+    setup: Annotated[str, Field(min_length=5, max_length=300)]
+    punchline: Annotated[str, Field(min_length=1, max_length=100)]
+    tag: Annotated[str, Field(min_length=1, max_length=50)]
+
+
+class JokeUpdate(BaseModel):
+    setup: Annotated[str | None, Field(min_length=5, max_length=300)] = None
+    punchline: Annotated[str | None, Field(min_length=1, max_length=100)] = None
+    tag: Annotated[str | None, Field(min_length=1, max_length=50)] = None
+
+
+class JokeRead(BaseModel):
+    id: int
+    setup: str
+    punchline: str
+    tag: str

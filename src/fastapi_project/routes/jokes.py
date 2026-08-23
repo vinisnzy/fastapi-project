@@ -1,16 +1,10 @@
 from random import choice
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
+from fastapi_project.schemas.jokes import JokeCreate
 
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
-
-
-class Joke(BaseModel):
-    setup: str
-    punchline: str
-    tag: str
-
 
 jokes: list[dict] = [
     {
@@ -45,7 +39,7 @@ def get_joke_by_id(joke_id: int) -> dict:
 
 
 @router.post("/")
-def add_joke(joke: Joke) -> dict:
+def add_joke(joke: JokeCreate) -> dict:
     new_joke = {"setup": joke.setup, "punchline": joke.punchline, "tag": joke.tag}
     jokes.append(new_joke)
     return {"message": "Joke added!", "id": len(jokes) - 1, "joke": new_joke}
