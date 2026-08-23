@@ -52,3 +52,11 @@ def update_joke(joke_id: int, payload: JokeUpdate) -> JokeRead:
         {k: v for k, v in changes.items() if k in {"setup", "punchline", "tag"}}
     )
     return JokeRead.model_validate(joke)
+
+
+@router.delete("/{joke_id}", status_code=204)
+def delete_joke(joke_id: int) -> None:
+    joke = next((j for j in data if j["id"] == joke_id), None)
+    if joke is None:
+        raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
+    data.remove(joke)
