@@ -163,15 +163,33 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi-pagination"
+version = "0.15.16"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/65/9c2f1c324fa7a83b328b024c45e70471007b165a1d56ab237fe0e574e36f/fastapi_pagination-0.15.16.tar.gz", hash = "sha256:739a4e904729dc01e03ce95e260ed9be050d48a3659be8463e5c4fcdd0cf25b0", size = 614997, upload-time = "2026-07-28T18:41:07.421Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/d1/9725ec62421dcfe430d874cba9f82c0288baee0c4b7dd8aa8dcca2b0394e/fastapi_pagination-0.15.16-py3-none-any.whl", hash = "sha256:86dc73620812d47c297a7b8baca4eba2bac5d3f1d73aa75dc6e3bb12c0b803f7", size = 65991, upload-time = "2026-07-28T18:41:06.076Z" },
+]
+
+[[package]]
 name = "fastapi-project"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi-pagination" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" }]
+requires-dist = [
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" },
+    { name = "fastapi-pagination", specifier = ">=0.15.16" },
+]
 
 [[package]]
 name = "fastar"
