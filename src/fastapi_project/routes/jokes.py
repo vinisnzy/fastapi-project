@@ -9,6 +9,10 @@ from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
+def get_joke_by_id_from_data(joke_id: int) -> dict | None:
+    return next((j for j in data if j["id"] == joke_id), None)
+
+
 @router.get("/", response_model=Page[JokeRead])
 def get_jokes(tag: str | None = None) -> Page[JokeRead]:
     items = data if tag is None else [j for j in data if j["tag"] == tag]
@@ -29,7 +33,7 @@ def get_random_joke(tag: str | None = None) -> JokeRead:
 
 @router.get("/{joke_id}", response_model=JokeRead)
 def get_joke_by_id(joke_id: int) -> JokeRead:
-    joke = next((j for j in data if j["id"] == joke_id), None)
+    joke = get_joke_by_id_from_data(joke_id)
     if joke is None:
         raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
     return JokeRead.model_validate(data[joke_id])
@@ -53,7 +57,7 @@ def update_joke(joke_id: int, payload: JokeUpdate) -> JokeRead:
     if not changes:
         raise HTTPException(status_code=400, detail="There are no fields to update")
 
-    joke = next((j for j in data if j["id"] == joke_id), None)
+    joke = get_joke_by_id_from_data(joke_id)
     if joke is None:
         raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
 
@@ -65,7 +69,7 @@ def update_joke(joke_id: int, payload: JokeUpdate) -> JokeRead:
 
 @router.delete("/{joke_id}", status_code=204)
 def delete_joke(joke_id: int) -> None:
-    joke = next((j for j in data if j["id"] == joke_id), None)
+    joke = get_joke_by_id_from_data(joke_id)
     if joke is None:
         raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
     data.remove(joke)
