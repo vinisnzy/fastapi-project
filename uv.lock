@@ -193,6 +193,7 @@ dependencies = [
     { name = "aiosqlite" },
     { name = "fastapi", extra = ["standard"] },
     { name = "fastapi-pagination" },
+    { name = "python-dotenv" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
@@ -201,6 +202,7 @@ requires-dist = [
     { name = "aiosqlite", specifier = ">=0.22.1" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" },
     { name = "fastapi-pagination", specifier = ">=0.15.16" },
+    { name = "python-dotenv", specifier = ">=1.2.3" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.52" },
 ]
 
