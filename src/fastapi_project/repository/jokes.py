@@ -1,11 +1,37 @@
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_project.models import Joke
-from fastapi_project.repository.base_jokes import IJokeRepository
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
+
+
+class IJokeRepository(ABC):
+    @abstractmethod
+    async def get_all_jokes(self) -> Sequence[JokeRead]:
+        pass
+
+    @abstractmethod
+    async def get_jokes_by_tag(self, tag: str) -> Sequence[JokeRead]:
+        pass
+
+    @abstractmethod
+    async def get_joke_by_id(self, joke_id: str) -> JokeRead | None:
+        pass
+
+    @abstractmethod
+    async def add_joke(self, data: JokeCreate) -> JokeRead:
+        pass
+
+    @abstractmethod
+    async def update_joke(self, joke_id: str, data: JokeUpdate) -> JokeRead | None:
+        pass
+
+    @abstractmethod
+    async def delete_joke(self, joke_id: str) -> bool:
+        pass
 
 
 class JokeRepository(IJokeRepository):
@@ -30,7 +56,7 @@ class JokeRepository(IJokeRepository):
         await self.session.commit()
         return JokeRead.model_validate(joke)
 
-    async def update_joke(self, joke_id: str, data: JokeUpdate) -> JokeRead | None:        
+    async def update_joke(self, joke_id: str, data: JokeUpdate) -> JokeRead | None:
         setted_data = data.model_dump(exclude_unset=True)
 
         if setted_data:
