@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from fastapi_project.routes import jokes
+from fastapi_project.routers import jokes
 
 app = FastAPI()
 
