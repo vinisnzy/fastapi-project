@@ -17,10 +17,8 @@ def get_joke_repository(session: AsyncSessionDep) -> JokeRepository:
 JokeRepositoryDep = Annotated[JokeRepository, Depends(get_joke_repository)]
 
 
-def get_joke_service(
-    session: AsyncSessionDep, repository: JokeRepositoryDep
-) -> JokeService:
-    return JokeService(repository, session)
+def get_joke_service(repository: JokeRepositoryDep) -> JokeService:
+    return JokeService(repository)
 
 
 JokeServiceDep = Annotated[JokeService, Depends(get_joke_service)]
