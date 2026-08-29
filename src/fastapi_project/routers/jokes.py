@@ -1,75 +1,40 @@
-from random import choice
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi_pagination import Page, paginate
 
-from fastapi_project.repository.jokes import data
+from fastapi_project.dependencies import JokeServiceDep
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
-def get_joke_by_id_from_data(joke_id: int) -> dict | None:
-    return next((j for j in data if j["id"] == joke_id), None)
-
-
 @router.get("/", response_model=Page[JokeRead])
-def get_jokes(tag: str | None = None) -> Page[JokeRead]:
-    items = data if tag is None else [j for j in data if j["tag"] == tag]
-
-    if tag is not None and not items:
-        raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
+async def get_jokes(service: JokeServiceDep, tag: str | None = None) -> Page[JokeRead]:
+    items = await service.get_jokes()
     return paginate(items)
 
 
 @router.get("/random", response_model=JokeRead)
-def get_random_joke(tag: str | None = None) -> JokeRead:
-    pool = data if tag is None else [j for j in data if j["tag"] == tag]
-
-    if not pool:
-        raise HTTPException(status_code=404, detail=f"No jokes with tag '{tag}'")
-    return JokeRead.model_validate(choice(pool))
+async def get_random_joke(service: JokeServiceDep, tag: str | None = None) -> JokeRead:
+    return await service.get_random_joke(tag)
 
 
 @router.get("/{joke_id}", response_model=JokeRead)
-def get_joke_by_id(joke_id: int) -> JokeRead:
-    joke = get_joke_by_id_from_data(joke_id)
-    if joke is None:
-        raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
-    return JokeRead.model_validate(data[joke_id])
+async def get_joke_by_id(service: JokeServiceDep, joke_id: str) -> JokeRead:
+    return await service.get_joke_by_id(joke_id)
 
 
 @router.post("/", status_code=201, response_model=JokeRead)
-def add_joke(joke: JokeCreate) -> JokeRead:
-    new_joke = {
-        "id": len(data),
-        "setup": joke.setup,
-        "punchline": joke.punchline,
-        "tag": joke.tag,
-    }
-    data.append(new_joke)
-    return JokeRead.model_validate(new_joke)
+async def add_joke(service: JokeServiceDep, joke: JokeCreate) -> JokeRead:
+    return await service.add_joke(joke)
 
 
 @router.patch("/{joke_id}", response_model=JokeRead)
-def update_joke(joke_id: int, payload: JokeUpdate) -> JokeRead:
-    changes = payload.model_dump(exclude_unset=True)
-    if not changes:
-        raise HTTPException(status_code=400, detail="There are no fields to update")
-
-    joke = get_joke_by_id_from_data(joke_id)
-    if joke is None:
-        raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
-
-    joke.update(
-        {k: v for k, v in changes.items() if k in {"setup", "punchline", "tag"}}
-    )
-    return JokeRead.model_validate(joke)
+async def update_joke(
+    service: JokeServiceDep, joke_id: str, payload: JokeUpdate
+) -> JokeRead:
+    return await service.update_joke(joke_id, payload)
 
 
 @router.delete("/{joke_id}", status_code=204)
-def delete_joke(joke_id: int) -> None:
-    joke = get_joke_by_id_from_data(joke_id)
-    if joke is None:
-        raise HTTPException(status_code=404, detail=f"Joke not found with id {joke_id}")
-    data.remove(joke)
+async def delete_joke(service: JokeServiceDep, joke_id: str) -> None:
+    await service.delete_joke(joke_id)
