@@ -1,7 +1,5 @@
 from collections.abc import AsyncGenerator
-from typing import Annotated
 
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from fastapi_project.core.config import settings
@@ -18,6 +16,3 @@ async def get_async_session() -> AsyncGenerator[AsyncSession]:
         except:
             await session.rollback()
             raise
-
-
-AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
