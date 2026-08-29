@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class JokeBase(BaseModel):
@@ -21,3 +21,5 @@ class JokeUpdate(BaseModel):
 
 class JokeRead(JokeBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
