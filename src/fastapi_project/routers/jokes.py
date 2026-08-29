@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter
 from fastapi_pagination import Page
 
@@ -18,7 +20,7 @@ async def get_random_joke(service: JokeServiceDep, tag: str | None = None) -> Jo
 
 
 @router.get("/{joke_id}", response_model=JokeRead)
-async def get_joke_by_id(service: JokeServiceDep, joke_id: str) -> JokeRead:
+async def get_joke_by_id(service: JokeServiceDep, joke_id: uuid.UUID) -> JokeRead:
     return await service.get_joke_by_id(joke_id)
 
 
@@ -29,11 +31,11 @@ async def add_joke(service: JokeServiceDep, joke: JokeCreate) -> JokeRead:
 
 @router.patch("/{joke_id}", response_model=JokeRead)
 async def update_joke(
-    service: JokeServiceDep, joke_id: str, payload: JokeUpdate
+    service: JokeServiceDep, joke_id: uuid.UUID, payload: JokeUpdate
 ) -> JokeRead:
     return await service.update_joke(joke_id, payload)
 
 
 @router.delete("/{joke_id}", status_code=204)
-async def delete_joke(service: JokeServiceDep, joke_id: str) -> None:
+async def delete_joke(service: JokeServiceDep, joke_id: uuid.UUID) -> None:
     await service.delete_joke(joke_id)

@@ -1,3 +1,4 @@
+import uuid
 from random import choice
 
 from fastapi import HTTPException
@@ -35,11 +36,11 @@ class JokeService:
             pool = await self.repository.get_all_jokes()
         return JokeRead.model_validate(choice(pool))
 
-    async def exists_joke_by_id(self, joke_id: str) -> bool:
+    async def exists_joke_by_id(self, joke_id: uuid.UUID) -> bool:
         joke = await self.get_joke_by_id(joke_id)
         return bool(joke)
 
-    async def get_joke_by_id(self, joke_id: str) -> JokeRead:
+    async def get_joke_by_id(self, joke_id: uuid.UUID) -> JokeRead:
         joke = await self.repository.get_joke_by_id(joke_id)
         if joke is None:
             raise HTTPException(
@@ -50,7 +51,7 @@ class JokeService:
     async def add_joke(self, joke: JokeCreate) -> JokeRead:
         return JokeRead.model_validate(await self.repository.add_joke(joke))
 
-    async def update_joke(self, joke_id: str, payload: JokeUpdate) -> JokeRead:
+    async def update_joke(self, joke_id: uuid.UUID, payload: JokeUpdate) -> JokeRead:
         updatedJoke = await self.repository.update_joke(joke_id, payload)
         if not updatedJoke:
             raise HTTPException(
@@ -58,7 +59,7 @@ class JokeService:
             )
         return JokeRead.model_validate(updatedJoke)
 
-    async def delete_joke(self, joke_id: str) -> None:
+    async def delete_joke(self, joke_id: uuid.UUID) -> None:
         if not await self.repository.delete_joke(joke_id):
             raise HTTPException(
                 status_code=404, detail=f"Joke not found with id {joke_id}"

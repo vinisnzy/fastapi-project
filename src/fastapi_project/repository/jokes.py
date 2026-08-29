@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -18,7 +19,7 @@ class IJokeRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_joke_by_id(self, joke_id: str) -> JokeRead | None:
+    async def get_joke_by_id(self, joke_id: uuid.UUID) -> JokeRead | None:
         pass
 
     @abstractmethod
@@ -26,11 +27,13 @@ class IJokeRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_joke(self, joke_id: str, data: JokeUpdate) -> JokeRead | None:
+    async def update_joke(
+        self, joke_id: uuid.UUID, data: JokeUpdate
+    ) -> JokeRead | None:
         pass
 
     @abstractmethod
-    async def delete_joke(self, joke_id: str) -> bool:
+    async def delete_joke(self, joke_id: uuid.UUID) -> bool:
         pass
 
 
@@ -46,7 +49,7 @@ class JokeRepository(IJokeRepository):
         result = await self.session.execute(select(Joke).where(Joke.tag == tag))
         return [JokeRead.model_validate(joke) for joke in result.scalars().all()]
 
-    async def get_joke_by_id(self, joke_id: str) -> JokeRead | None:
+    async def get_joke_by_id(self, joke_id: uuid.UUID) -> JokeRead | None:
         result = await self.session.execute(select(Joke).where(Joke.id == joke_id))
         return JokeRead.model_validate(result.scalar_one_or_none())
 
@@ -56,7 +59,9 @@ class JokeRepository(IJokeRepository):
         await self.session.commit()
         return JokeRead.model_validate(joke)
 
-    async def update_joke(self, joke_id: str, data: JokeUpdate) -> JokeRead | None:
+    async def update_joke(
+        self, joke_id: uuid.UUID, data: JokeUpdate
+    ) -> JokeRead | None:
         setted_data = data.model_dump(exclude_unset=True)
 
         if setted_data:
@@ -67,7 +72,7 @@ class JokeRepository(IJokeRepository):
 
         return await self.get_joke_by_id(joke_id)
 
-    async def delete_joke(self, joke_id: str) -> bool:
+    async def delete_joke(self, joke_id: uuid.UUID) -> bool:
         result = await self.session.execute(select(Joke).where(Joke.id == joke_id))
         joke = result.scalar_one_or_none()
 

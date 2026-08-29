@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -20,6 +21,6 @@ class JokeUpdate(BaseModel):
 
 
 class JokeRead(JokeBase):
-    id: int
+    id: uuid.UUID
 
     model_config = ConfigDict(from_attributes=True)
