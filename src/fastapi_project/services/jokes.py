@@ -2,17 +2,13 @@ from random import choice
 
 from fastapi import HTTPException
 from fastapi_pagination import Page, paginate
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_project.repository.jokes import (
-    IJokeRepository,
-)
+from fastapi_project.dependencies import JokeRepositoryDep
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 
 
 class JokeService:
-    def __init__(self, repository: IJokeRepository, session: AsyncSession) -> None:
-        self.session = session
+    def __init__(self, repository: JokeRepositoryDep) -> None:
         self.repository = repository
 
     async def get_jokes(self) -> Page[JokeRead]:

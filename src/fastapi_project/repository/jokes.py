@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi_project.dependencies import AsyncSessionDep
 from fastapi_project.models import Joke
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 
@@ -35,7 +36,7 @@ class IJokeRepository(ABC):
 
 
 class JokeRepository(IJokeRepository):
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSessionDep) -> None:
         self.session = session
 
     async def get_all_jokes(self) -> Sequence[JokeRead]:
