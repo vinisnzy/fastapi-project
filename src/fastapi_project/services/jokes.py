@@ -1,9 +1,9 @@
 import uuid
 from random import choice
 
-from fastapi import HTTPException
 from fastapi_pagination import Page, paginate
 
+from fastapi_project.exceptions import NotFoundError
 from fastapi_project.models.jokes import Joke
 from fastapi_project.repository.jokes import IJokeRepository
 from fastapi_project.schemas.jokes import JokeCreate, JokeUpdate
@@ -23,8 +23,8 @@ class JokeService:
         if tag:
             pool = await self.repository.get_jokes_by_tag(tag)
             if not pool:
-                raise HTTPException(
-                    status_code=404, detail=f"No jokes with tag '{tag}'"
+                raise NotFoundError(
+                    resource="Joke", message=f"No jokes with tag '{tag}'"
                 )
         else:
             pool = await self.repository.get_all_jokes()
@@ -36,9 +36,7 @@ class JokeService:
     async def get_joke_by_id(self, joke_id: uuid.UUID) -> Joke:
         joke = await self.repository.get_joke_by_id(joke_id)
         if joke is None:
-            raise HTTPException(
-                status_code=404, detail=f"Joke not found with id {joke_id}"
-            )
+            raise NotFoundError("Joke", joke_id)
         return joke
 
     async def add_joke(self, joke: JokeCreate) -> Joke:
@@ -47,13 +45,9 @@ class JokeService:
     async def update_joke(self, joke_id: uuid.UUID, payload: JokeUpdate) -> Joke:
         updatedJoke = await self.repository.update_joke(joke_id, payload)
         if not updatedJoke:
-            raise HTTPException(
-                status_code=404, detail=f"Joke not found with id {joke_id}"
-            )
+            raise NotFoundError("Joke", joke_id)
         return updatedJoke
 
     async def delete_joke(self, joke_id: uuid.UUID) -> None:
         if not await self.repository.delete_joke(joke_id):
-            raise HTTPException(
-                status_code=404, detail=f"Joke not found with id {joke_id}"
-            )
+            raise NotFoundError("Joke", joke_id)
