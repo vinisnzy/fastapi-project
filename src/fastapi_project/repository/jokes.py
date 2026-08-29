@@ -6,30 +6,28 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_project.models import Joke
-from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
+from fastapi_project.schemas.jokes import JokeCreate, JokeUpdate
 
 
 class IJokeRepository(ABC):
     @abstractmethod
-    async def get_all_jokes(self) -> Sequence[JokeRead]:
+    async def get_all_jokes(self) -> Sequence[Joke]:
         pass
 
     @abstractmethod
-    async def get_jokes_by_tag(self, tag: str) -> Sequence[JokeRead]:
+    async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
         pass
 
     @abstractmethod
-    async def get_joke_by_id(self, joke_id: uuid.UUID) -> JokeRead | None:
+    async def get_joke_by_id(self, joke_id: uuid.UUID) -> Joke | None:
         pass
 
     @abstractmethod
-    async def add_joke(self, data: JokeCreate) -> JokeRead:
+    async def add_joke(self, data: JokeCreate) -> Joke:
         pass
 
     @abstractmethod
-    async def update_joke(
-        self, joke_id: uuid.UUID, data: JokeUpdate
-    ) -> JokeRead | None:
+    async def update_joke(self, joke_id: uuid.UUID, data: JokeUpdate) -> Joke | None:
         pass
 
     @abstractmethod
@@ -41,27 +39,25 @@ class JokeRepository(IJokeRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_all_jokes(self) -> Sequence[JokeRead]:
+    async def get_all_jokes(self) -> Sequence[Joke]:
         result = await self.session.execute(select(Joke))
-        return [JokeRead.model_validate(joke) for joke in result.scalars().all()]
+        return result.scalars().all()
 
-    async def get_jokes_by_tag(self, tag: str) -> Sequence[JokeRead]:
+    async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
         result = await self.session.execute(select(Joke).where(Joke.tag == tag))
-        return [JokeRead.model_validate(joke) for joke in result.scalars().all()]
+        return result.scalars().all()
 
-    async def get_joke_by_id(self, joke_id: uuid.UUID) -> JokeRead | None:
+    async def get_joke_by_id(self, joke_id: uuid.UUID) -> Joke | None:
         result = await self.session.execute(select(Joke).where(Joke.id == joke_id))
-        return JokeRead.model_validate(result.scalar_one_or_none())
+        return result.scalar_one_or_none()
 
-    async def add_joke(self, data: JokeCreate) -> JokeRead:
+    async def add_joke(self, data: JokeCreate) -> Joke:
         joke = Joke(**data.model_dump())
         self.session.add(joke)
         await self.session.commit()
-        return JokeRead.model_validate(joke)
+        return joke
 
-    async def update_joke(
-        self, joke_id: uuid.UUID, data: JokeUpdate
-    ) -> JokeRead | None:
+    async def update_joke(self, joke_id: uuid.UUID, data: JokeUpdate) -> Joke | None:
         setted_data = data.model_dump(exclude_unset=True)
 
         if setted_data:
