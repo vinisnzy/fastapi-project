@@ -1,10 +1,10 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
 from fastapi_project.core.config import settings
 from fastapi_project.models import Base
 
@@ -47,7 +47,7 @@ def do_run_migrations(connection: Connection) -> None:
         target_metadata=target_metadata,
         compare_type=True,
         compare_server_default=True,
-        render_as_batch=True, # SQLite Config
+        render_as_batch=True,  # SQLite Config
     )
 
     with context.begin_transaction():
