@@ -67,9 +67,3 @@ class JokeService:
             raise HTTPException(
                 status_code=404, detail=f"Joke not found with id {joke_id}"
             )
-
-
-def get_jokes_service(
-    repository: IJokeRepository, session: AsyncSession
-) -> JokeService:
-    return JokeService(repository, session)
