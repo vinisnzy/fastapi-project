@@ -26,3 +26,25 @@ build-backend = "uv_build"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.5",
+]
+
+[tool.ruff]
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort — ordena imports
+    "UP",   # pyupgrade — moderniza sintaxe
+    "B",    # bugbear — bugs comuns
+    "SIM",  # simplify
+]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*" = ["E501", "I001"]
