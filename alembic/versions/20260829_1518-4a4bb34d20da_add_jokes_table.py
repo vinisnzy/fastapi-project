@@ -1,8 +1,8 @@
 """add jokes table
 
-Revision ID: d99126ae51c6
+Revision ID: 4a4bb34d20da
 Revises:
-Create Date: 2026-08-29 13:27:37.347373
+Create Date: 2026-08-29 15:18:00.428365
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "d99126ae51c6"
+revision: str = "4a4bb34d20da"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -31,13 +31,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_jokes")),
