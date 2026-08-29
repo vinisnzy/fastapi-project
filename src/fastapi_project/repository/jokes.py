@@ -77,3 +77,7 @@ class JokeRepository(IJokeRepository):
         await self.session.delete(joke)
         await self.session.commit()
         return True
+
+
+def get_joke_repository(session: AsyncSession):
+    return JokeRepository(session)
