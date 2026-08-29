@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from fastapi_pagination import Page, paginate
+from fastapi_pagination import Page
 
 from fastapi_project.dependencies import JokeServiceDep
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
@@ -8,9 +8,8 @@ router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
 @router.get("/", response_model=Page[JokeRead])
-async def get_jokes(service: JokeServiceDep, tag: str | None = None) -> Page[JokeRead]:
-    items = await service.get_jokes()
-    return paginate(items)
+async def get_jokes(service: JokeServiceDep) -> Page[JokeRead]:
+    return await service.get_jokes()
 
 
 @router.get("/random", response_model=JokeRead)
