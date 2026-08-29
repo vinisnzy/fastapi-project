@@ -3,7 +3,7 @@ from random import choice
 
 from fastapi_pagination import Page, paginate
 
-from fastapi_project.exceptions import NotFoundError
+from fastapi_project.exceptions.exceptions import NotFoundError
 from fastapi_project.models.jokes import Joke
 from fastapi_project.repository.jokes import IJokeRepository
 from fastapi_project.schemas.jokes import JokeCreate, JokeUpdate

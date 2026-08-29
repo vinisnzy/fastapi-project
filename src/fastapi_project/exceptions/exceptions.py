@@ -25,9 +25,12 @@ class NotFoundError(AppException):
     def __init__(
         self, resource: str, resource_id: UUID | None = None, message: str | None = None
     ) -> None:
+        details = {"resource": resource}
+        if resource_id:
+            details["resource_id"] = str(resource_id)
         super().__init__(
-            message=message or f"{resource}, not found with id: {resource_id}",
+            message=message or f"{resource} not found with id: {resource_id}",
             status_code=404,
             error_code="NOT_FOUND",
-            details={"resource": resource, "resource_id": str(resource_id)},
+            details=details,
         )
