@@ -28,6 +28,9 @@ class JokeService:
                 )
         else:
             pool = await self.repository.get_all_jokes()
+            if not pool:
+                raise NotFoundError(resource="Joke", message="No available jokes")
+
         return choice(pool)
 
     async def exists_joke_by_id(self, joke_id: uuid.UUID) -> bool:
