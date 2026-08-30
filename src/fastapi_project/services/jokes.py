@@ -40,10 +40,12 @@ class JokeService:
         return joke
 
     async def add_joke(self, joke: JokeCreate) -> Joke:
-        return await self.repository.add_joke(joke)
+        return await self.repository.add_joke(joke.model_dump())
 
     async def update_joke(self, joke_id: uuid.UUID, payload: JokeUpdate) -> Joke:
-        updatedJoke = await self.repository.update_joke(joke_id, payload)
+        updatedJoke = await self.repository.update_joke(
+            joke_id, payload.model_dump(exclude_unset=True)
+        )
         if not updatedJoke:
             raise NotFoundError("Joke", joke_id)
         return updatedJoke

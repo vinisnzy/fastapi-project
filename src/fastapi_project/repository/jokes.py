@@ -1,12 +1,12 @@
 import uuid
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_project.models import Joke
-from fastapi_project.schemas.jokes import JokeCreate, JokeUpdate
 
 
 class IJokeRepository(ABC):
@@ -23,11 +23,13 @@ class IJokeRepository(ABC):
         pass
 
     @abstractmethod
-    async def add_joke(self, data: JokeCreate) -> Joke:
+    async def add_joke(self, data: dict[str, Any]) -> Joke:
         pass
 
     @abstractmethod
-    async def update_joke(self, joke_id: uuid.UUID, data: JokeUpdate) -> Joke | None:
+    async def update_joke(
+        self, joke_id: uuid.UUID, data: dict[str, Any]
+    ) -> Joke | None:
         pass
 
     @abstractmethod
@@ -51,18 +53,18 @@ class JokeRepository(IJokeRepository):
         result = await self.session.execute(select(Joke).where(Joke.id == joke_id))
         return result.scalar_one_or_none()
 
-    async def add_joke(self, data: JokeCreate) -> Joke:
-        joke = Joke(**data.model_dump())
+    async def add_joke(self, data: dict[str, Any]) -> Joke:
+        joke = Joke(**data)
         self.session.add(joke)
         await self.session.commit()
         return joke
 
-    async def update_joke(self, joke_id: uuid.UUID, data: JokeUpdate) -> Joke | None:
-        setted_data = data.model_dump(exclude_unset=True)
-
-        if setted_data:
+    async def update_joke(
+        self, joke_id: uuid.UUID, data: dict[str, Any]
+    ) -> Joke | None:
+        if data:
             await self.session.execute(
-                update(Joke).where(Joke.id == joke_id).values(**setted_data)
+                update(Joke).where(Joke.id == joke_id).values(**data)
             )
             await self.session.commit()
 
