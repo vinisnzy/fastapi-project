@@ -5,10 +5,11 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from src.fastapi_project.dependencies import get_joke_service
-from src.fastapi_project.main import create_app
-from src.fastapi_project.models.base import Base
-from src.fastapi_project.services.jokes import JokeService
+
+from fastapi_project.dependencies import get_joke_service
+from fastapi_project.main import create_app
+from fastapi_project.models.base import Base
+from fastapi_project.services.jokes import JokeService
 
 
 @pytest.fixture(scope="session")
