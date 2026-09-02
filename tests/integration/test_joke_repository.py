@@ -1,8 +1,9 @@
 import uuid
 
 import pytest
-from src.fastapi_project.repository.jokes import JokeRepository
 from tests.factories import make_joke
+
+from fastapi_project.repository.jokes import JokeRepository
 
 
 @pytest.fixture
