@@ -5,6 +5,7 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
+from fastapi_project.core.config import Settings
 from fastapi_project.dependencies import get_joke_service
 from fastapi_project.main import create_app
 from fastapi_project.services.jokes import JokeService
@@ -17,7 +18,9 @@ def joke_service() -> AsyncMock:
 
 @pytest.fixture
 async def app(joke_service: AsyncMock) -> AsyncIterator[FastAPI]:
-    app = create_app()
+    app = create_app(
+        Settings(DATABASE_URL="postgresql+asyncpg://x:x@localhost/x", DEBUG=False)
+    )
     app.dependency_overrides[get_joke_service] = lambda: joke_service
     yield app
     app.dependency_overrides.clear()

@@ -1,8 +1,10 @@
 from collections.abc import AsyncIterator
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi_project.core.config import Settings
+from fastapi_project.database.session import build_engine
 from fastapi_project.models.base import Base
 
 
@@ -16,7 +18,7 @@ def postgres_url():
 
 @pytest.fixture(scope="session")
 async def engine(postgres_url):
-    engine = create_async_engine(postgres_url)
+    engine = build_engine(Settings(DATABASE_URL=postgres_url, DEBUG=False))
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
