@@ -1,7 +1,7 @@
 import uuid
 
 import pytest
-from tests.factories import make_joke
+from tests.factories import make_dict_joke
 
 from fastapi_project.repository.jokes import JokeRepository
 
@@ -13,7 +13,7 @@ def repository(session):
 
 async def test_should_return_all_jokes(repository, session):
     for _ in range(5):
-        await repository.add_joke(make_joke())
+        await repository.add_joke(make_dict_joke())
     await session.flush()
 
     jokes = await repository.get_all_jokes()
@@ -21,69 +21,55 @@ async def test_should_return_all_jokes(repository, session):
 
 
 async def test_should_return_jokes_by_tag(repository, session):
-    for i in range(5):
-        tag = "even" if i % 2 == 0 else "odd"
-        await repository.add_joke(make_joke(tag=tag))
-    await session.flush()
+    tags = ["odd", "odd", "even"]
+    for tag in tags:
+        await repository.add_joke(make_dict_joke(tag=tag))
+
     jokes_by_tag = await repository.get_jokes_by_tag("odd")
-    assert len(jokes_by_tag) == 3
+
+    assert len(jokes_by_tag) == 2
     for j in jokes_by_tag:
         assert j.tag == "odd"
 
 
 async def test_should_add_joke_and_return_joke_by_id(repository, session):
-    joke = make_joke()
+    added = await repository.add_joke(make_dict_joke())
 
-    await repository.add_joke(joke)
-    await session.flush()
-    session.expire_all()  # For SELECT go to database
+    found = await repository.get_joke_by_id(added.id)
 
-    joke = repository.get_joke_by_id(joke.id)
-    assert joke is not None
+    assert found is not None
+    assert found.id == added.id
+    assert found.setup == added.setup
 
 
 async def test_should_return_none_if_joke_not_exists_by_id(repository):
     random_id = uuid.uuid4()
 
-    joke = repository.get_joke_by_id(random_id)
+    joke = await repository.get_joke_by_id(random_id)
     assert joke is None
 
 
 async def test_should_add_joke(repository, session):
-    joke = make_joke()
-
-    await repository.add_joke(joke)
-    await session.flush()
+    await repository.add_joke(make_dict_joke())
 
     jokes = await repository.get_all_jokes()
     assert len(jokes) == 1
 
 
 async def test_should_update_joke(repository, session):
-    joke = make_joke()
+    added = await repository.add_joke(make_dict_joke())
 
-    await repository.add_joke(joke)
+    updated_joke = await repository.update_joke(added.id, {"tag": "updated"})
     await session.flush()
 
-    joke = repository.get_joke_by_id(joke.id)
-
-    updated_joke = repository.update_joke(joke.id, {"tag": "updated"})
-    await session.flush()
-
-    assert updated_joke.id == joke.id
-
+    assert updated_joke.id == added.id
     assert updated_joke.tag == "updated"
 
 
 async def test_should_delete_joke_returns_true(repository, session):
-    joke = make_joke()
+    added = await repository.add_joke(make_dict_joke())
 
-    await repository.add_joke(joke)
-    await session.flush()
-
-    joke = repository.get_joke_by_id(joke.id)
-
-    result = repository.delete_joke(joke.id)
+    result = await repository.delete_joke(added.id)
     await session.flush()
 
     jokes = await repository.get_all_jokes()
@@ -93,10 +79,7 @@ async def test_should_delete_joke_returns_true(repository, session):
 
 async def test_should_delete_joke_returns_false(repository, session):
     random_id = uuid.uuid4()
-    result = repository.delete_joke(random_id)
+    result = await repository.delete_joke(random_id)
     await session.flush()
 
     assert not result
-
-
-# TODO Testar casos especiais nas funções
