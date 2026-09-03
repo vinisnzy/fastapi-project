@@ -34,7 +34,7 @@ class JokeService:
         return choice(pool)
 
     async def exists_joke_by_id(self, joke_id: uuid.UUID) -> bool:
-        return bool(await self.get_joke_by_id(joke_id))
+        return bool(await self.repository.get_joke_by_id(joke_id))
 
     async def get_joke_by_id(self, joke_id: uuid.UUID) -> Joke:
         joke = await self.repository.get_joke_by_id(joke_id)
