@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi_project.models.jokes import Joke
 from fastapi_project.repository.jokes import IJokeRepository
@@ -8,7 +8,10 @@ from fastapi_project.repository.jokes import IJokeRepository
 
 class FakeJokeRepository(IJokeRepository):
     def __init__(self, initials: list[dict[str, Any]] | None = None) -> None:
-        self.items: dict[UUID, dict[str, Any]] = {j["id"]: j for j in (initials or [])}
+        self.items: dict[UUID, dict[str, Any]] = {}
+        for j in initials or []:
+            jid = j.get("id") or uuid4()
+            self.items[jid] = {**j, "id": jid}
 
     async def get_all_jokes(self) -> Sequence[Joke]:
         return [Joke(**j) for j in self.items.values()]
@@ -21,17 +24,21 @@ class FakeJokeRepository(IJokeRepository):
         return Joke(**joke) if joke is not None else None
 
     async def add_joke(self, data: dict[str, Any]) -> Joke:
-        self.items[data["id"]] = data
-        return Joke(**data)
+        jid = data.get("id") or uuid4()
+        item = {**data, "id": jid}
+        self.items[jid] = item
+        return Joke(**item)
 
     async def update_joke(self, joke_id: UUID, data: dict[str, Any]) -> Joke | None:
-        if data:
-            self.items[joke_id] = data
+        item = self.items.get(joke_id)
+        if item is None:
+            return None
 
+        self.items[joke_id] = {**item, **data, "id": joke_id}
         return await self.get_joke_by_id(joke_id)
 
     async def delete_joke(self, joke_id: UUID) -> bool:
-        joke = self.get_joke_by_id(joke_id)
+        joke = await self.get_joke_by_id(joke_id)
 
         if not joke:
             return False

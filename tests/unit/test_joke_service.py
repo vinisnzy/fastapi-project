@@ -15,8 +15,8 @@ async def test_should_get_jokes_with_pagination():
 
     paginated_jokes = await service.get_jokes()
 
-    assert paginated_jokes.page == 0
-    assert paginated_jokes.size == 1
+    assert paginated_jokes.page == 1
+    assert paginated_jokes.total == 1
     assert len(paginated_jokes.items) == 1
 
 
@@ -33,8 +33,8 @@ async def test_should_get_jokes_by_tag_with_pagination():
 
     paginated_jokes = await service.get_jokes_by_tag(test_tag)
 
-    assert paginated_jokes.page == 0
-    assert paginated_jokes.size == 2
+    assert paginated_jokes.page == 1
+    assert paginated_jokes.total == 2
     assert len(paginated_jokes.items) == 2
 
 
@@ -68,7 +68,7 @@ async def test_should_raise_error_when_not_exists_joke_with_tag():
     with pytest.raises(NotFoundError) as exc:
         await service.get_random_joke(tag="random_tag")
 
-    assert "No jokes with tag random_tag" in str(exc.value)
+    assert "No jokes with tag 'random_tag'" in str(exc.value)
 
 
 async def test_should_raise_error_when_not_exists_available_jokes():
@@ -87,7 +87,7 @@ async def test_should_return_true_if_joke_exists_by_id():
 
     joke_id = (await repository.get_all_jokes())[0].id
 
-    exists = service.exists_joke_by_id(joke_id)
+    exists = await service.exists_joke_by_id(joke_id)
 
     assert exists
 
@@ -97,7 +97,7 @@ async def test_should_return_false_if_joke_not_exists_by_id():
     service = JokeService(repository)
 
     random_id = uuid.uuid4()
-    exists = service.exists_joke_by_id(random_id)
+    exists = await service.exists_joke_by_id(random_id)
 
     assert not exists
 
@@ -144,13 +144,13 @@ async def test_should_update_joke():
     repository = FakeJokeRepository(initials=[make_dict_joke()])
     service = JokeService(repository)
 
-    joke_id = (await repository.get_all_jokes())[0].id
+    joke = (await repository.get_all_jokes())[0]
 
     updated_tag = "updated_tag"
-    updated_joke = await service.update_joke(joke_id, JokeUpdate(tag=updated_tag))
+    updated_joke = await service.update_joke(joke.id, JokeUpdate(tag=updated_tag))
 
     assert updated_joke is not None
-    assert updated_joke.id == joke_id
+    assert updated_joke.id == joke.id
     assert updated_joke.tag == updated_tag
 
 
