@@ -12,6 +12,7 @@ wheels/
 # IDE
 .vscode
 .idea/
+.cursor
 
 # Environments
 .env
@@ -19,5 +20,5 @@ wheels/
 .env.*.local
 .venv
 
-# SQLite Database file
-app.db
+# Documents
+docs
