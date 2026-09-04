@@ -9,7 +9,7 @@ from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 router = APIRouter(prefix="/jokes", tags=["Jokes"])
 
 
-@router.get("/", response_model=Page[JokeRead])
+@router.get("", response_model=Page[JokeRead])
 async def get_jokes(service: JokeServiceDep):
     return await service.get_jokes()
 
@@ -24,7 +24,7 @@ async def get_joke_by_id(service: JokeServiceDep, joke_id: uuid.UUID):
     return await service.get_joke_by_id(joke_id)
 
 
-@router.post("/", status_code=201, response_model=JokeRead)
+@router.post("", status_code=201, response_model=JokeRead)
 async def add_joke(service: JokeServiceDep, joke: JokeCreate):
     return await service.add_joke(joke)
 

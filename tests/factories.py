@@ -1,10 +1,12 @@
 from typing import Any
+from uuid import uuid4
 
 from fastapi_project.models.jokes import Joke
 
 
-def make_joke(**overrides) -> Joke:
+def make_joke_model(**overrides) -> Joke:
     data = dict(
+        id=uuid4(),
         setup="Why do Python programmers prefer dark mode?",
         punchline="Because light attracts bugs.",
         tag="python",
