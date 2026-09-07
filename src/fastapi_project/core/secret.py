@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import uuid
 from datetime import UTC, timedelta
 from typing import Any, Literal
@@ -49,3 +50,7 @@ def decode_token(
     if payload.get("type") != expected_type:
         raise jwt.InvalidTokenError("Unexpected token type")
     return payload
+
+
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
