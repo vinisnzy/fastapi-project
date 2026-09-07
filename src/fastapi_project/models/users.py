@@ -1,8 +1,7 @@
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fastapi_project.models import Base
-from fastapi_project.models.base import TimestampMixin, UUIDMixin
+from fastapi_project.models.base import Base, TimestampMixin, UUIDMixin
 
 
 class User(UUIDMixin, TimestampMixin, Base):
