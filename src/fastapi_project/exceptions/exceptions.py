@@ -34,3 +34,22 @@ class NotFoundError(AppException):
             error_code="NOT_FOUND",
             details=details,
         )
+
+
+class UnauthorizedError(AppException):
+    """Missing or invalid credentials"""
+
+    def __init__(self, message: str = "Invalid credentials") -> None:
+        super().__init__(message=message, status_code=401, error_code="UNAUTHORIZED")
+
+
+class ForbiddenError(AppException):
+    """Authenticated but not allowed"""
+
+    def __init__(self, message: str = "Not enough permissions") -> None:
+        super().__init__(message=message, status_code=403, error_code="FORBIDDEN")
+
+
+class ConflictError(AppException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message=message, status_code=409, error_code="CONFLICT")
