@@ -1,12 +1,14 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi_pagination import Page
 
-from fastapi_project.dependencies import JokeServiceDep
+from fastapi_project.dependencies import JokeServiceDep, get_current_user
 from fastapi_project.schemas.jokes import JokeCreate, JokeRead, JokeUpdate
 
-router = APIRouter(prefix="/jokes", tags=["Jokes"])
+router = APIRouter(
+    prefix="/jokes", tags=["Jokes"], dependencies=[Depends(get_current_user)]
+)
 
 
 @router.get("", response_model=Page[JokeRead])
