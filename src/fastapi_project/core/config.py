@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRES_IN_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRES_IN_DAYS: 7
+    REFRESH_TOKEN_EXPIRES_IN_DAYS: int = 7
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
