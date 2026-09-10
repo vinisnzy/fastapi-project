@@ -69,7 +69,7 @@ async def get_current_user(
         payload = decode_token(token, "access", settings)
     except jwt.ExpiredSignatureError as exc:
         raise UnauthorizedError(message="Token expired") from exc
-    except jwt.jwt.PyJWTError as exc:
+    except jwt.PyJWTError as exc:
         raise UnauthorizedError(message="Invalid token") from exc
 
     user = await repository.get_user_by_id(UUID(payload["sub"]))
