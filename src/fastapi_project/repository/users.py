@@ -1,10 +1,9 @@
 import datetime
 from abc import ABC, abstractmethod
-from turtle import update
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_project.models import RefreshToken, User
@@ -47,7 +46,7 @@ class UserRepository(IUserRepository):
         return result.scalar_one_or_none()
 
     async def get_user_by_id(self, user_id: UUID) -> User | None:
-        result = await self.session.execute(select(User).where(User.id == id))
+        result = await self.session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
     async def add_user(self, data: dict[str, Any]) -> User:
@@ -58,7 +57,9 @@ class UserRepository(IUserRepository):
 
     async def update_user(self, user_id: UUID, data: dict[str, Any]) -> User | None:
         if data:
-            await self.session.execute(update(User).where(User.id == id).values(**data))
+            await self.session.execute(
+                update(User).where(User.id == user_id).values(**data)
+            )
             await self.session.commit()
         return await self.get_user_by_id(user_id)
 
