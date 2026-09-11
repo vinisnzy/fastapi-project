@@ -84,7 +84,7 @@ class AuthService:
         stored = await self.repository.get_active_refresh_token(token_hash)
         if stored is None:
             # Refresh token reuse detection
-            self.repository.revoke_all_for_user(UUID(payload["sub"]))
+            await self.repository.revoke_all_for_user(UUID(payload["sub"]))
             raise UnauthorizedError(message="Refresh token revoked")
 
         user = await self.repository.get_user_by_id(stored.user_id)
