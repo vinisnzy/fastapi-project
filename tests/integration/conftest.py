@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from tests.conftest import TEST_JWT_SECRET
 
 from fastapi_project.core.config import Settings
 from fastapi_project.database.session import build_engine
@@ -18,7 +19,9 @@ def postgres_url():
 
 @pytest.fixture(scope="session")
 async def engine(postgres_url):
-    engine = build_engine(Settings(DATABASE_URL=postgres_url, DEBUG=False))
+    engine = build_engine(
+        Settings(DATABASE_URL=postgres_url, DEBUG=False, JWT_SECRET=TEST_JWT_SECRET)
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
