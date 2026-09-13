@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -78,7 +78,7 @@ class UserRepository(IUserRepository):
             select(RefreshToken).where(
                 RefreshToken.token_hash == token_hash,
                 RefreshToken.revoked_at.is_(None),
-                RefreshToken.expires_at > datetime.now(datetime.UTC),
+                RefreshToken.expires_at > datetime.now(UTC),
             )
         )
         return result.scalar_one_or_none()
@@ -89,7 +89,7 @@ class UserRepository(IUserRepository):
             .where(
                 RefreshToken.token_hash == token_hash,
             )
-            .values(revoked_at=datetime.now(datetime.UTC))
+            .values(revoked_at=datetime.now(UTC))
         )
         await self.session.commit()
 
@@ -97,6 +97,6 @@ class UserRepository(IUserRepository):
         await self.session.execute(
             update(RefreshToken)
             .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
-            .values(revoked_at=datetime.now(datetime.UTC))
+            .values(revoked_at=datetime.now(UTC))
         )
         await self.session.commit()
