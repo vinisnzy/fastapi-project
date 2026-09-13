@@ -15,7 +15,9 @@ def make_dict_joke(**overrides) -> dict[str, Any]:
 
 
 def make_joke_model(**overrides) -> Joke:
-    return Joke(**make_dict_joke(**overrides))
+    data = make_dict_joke(**overrides)
+    data.setdefault("id", uuid4())
+    return Joke(**data)
 
 
 def make_dict_user(**overrides) -> dict[str, Any]:
