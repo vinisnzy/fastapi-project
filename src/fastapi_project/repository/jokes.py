@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Any
 
-from sqlalchemy import select, update
+from fastapi_pagination.ext.sqlalchemy import apaginate
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_project.models import Joke
@@ -42,12 +43,23 @@ class JokeRepository(IJokeRepository):
         self.session = session
 
     async def get_all_jokes(self) -> Sequence[Joke]:
-        result = await self.session.execute(select(Joke))
-        return result.scalars().all()
+        stmt = select(Joke).order_by(Joke.created_at.desc(), Joke.id.desc())
+        return await apaginate(self.session, stmt)
 
     async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
-        result = await self.session.execute(select(Joke).where(Joke.tag == tag))
-        return result.scalars().all()
+        stmt = (
+            select(Joke)
+            .where(Joke.tag == tag)
+            .order_by(Joke.created_at.desc(), Joke.id.desc())
+        )
+        return await apaginate(self.session, stmt)
+
+    async def get_random_joke(self, tag: str | None = None) -> Joke | None:
+        stmt = select(Joke)
+        if tag is not None:
+            stmt = stmt.where(Joke.tag == tag)
+        stmt = stmt.order_by(func.random()).limit(1)
+        return (await self.session.execute(stmt)).scalar_one_or_none()
 
     async def get_joke_by_id(self, joke_id: uuid.UUID) -> Joke | None:
         result = await self.session.execute(select(Joke).where(Joke.id == joke_id))

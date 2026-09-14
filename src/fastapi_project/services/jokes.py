@@ -1,7 +1,6 @@
 import uuid
-from random import choice
 
-from fastapi_pagination import Page, paginate
+from fastapi_pagination import Page
 
 from fastapi_project.exceptions.exceptions import NotFoundError
 from fastapi_project.models.jokes import Joke
@@ -14,24 +13,17 @@ class JokeService:
         self.repository = repository
 
     async def get_jokes(self) -> Page[Joke]:
-        return paginate(await self.repository.get_all_jokes())
+        return await self.repository.get_all_jokes()
 
     async def get_jokes_by_tag(self, tag: str) -> Page[Joke]:
-        return paginate(await self.repository.get_jokes_by_tag(tag))
+        return await self.repository.get_jokes_by_tag(tag)
 
     async def get_random_joke(self, tag: str | None = None) -> Joke:
-        if tag:
-            pool = await self.repository.get_jokes_by_tag(tag)
-            if not pool:
-                raise NotFoundError(
-                    resource="Joke", message=f"No jokes with tag '{tag}'"
-                )
-        else:
-            pool = await self.repository.get_all_jokes()
-            if not pool:
-                raise NotFoundError(resource="Joke", message="No available jokes")
-
-        return choice(pool)
+        joke = await self.repository.get_random_joke(tag)
+        if joke is None:
+            message = f"No jokes with tag '{tag}'" if tag else "No available jokes"
+            raise NotFoundError(resource="Joke", message=message)
+        return joke
 
     async def exists_joke_by_id(self, joke_id: uuid.UUID) -> bool:
         return bool(await self.repository.get_joke_by_id(joke_id))
