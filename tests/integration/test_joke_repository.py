@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from fastapi_pagination import Params, set_params
 from tests.factories import make_dict_joke
 
 from fastapi_project.repository.jokes import JokeRepository
@@ -16,23 +17,23 @@ async def test_should_return_all_jokes(repository, session):
         await repository.add_joke(make_dict_joke())
     await session.flush()
 
-    jokes = await repository.get_all_jokes()
-    assert len(jokes) == 5
+    page = await repository.get_all_jokes()
+    assert page.total == 5
 
 
-async def test_should_return_jokes_by_tag(repository, session):
+async def test_should_return_jokes_by_tag(repository):
     tags = ["odd", "odd", "even"]
     for tag in tags:
         await repository.add_joke(make_dict_joke(tag=tag))
 
-    jokes_by_tag = await repository.get_jokes_by_tag("odd")
+    page = await repository.get_jokes_by_tag("odd")
 
-    assert len(jokes_by_tag) == 2
-    for j in jokes_by_tag:
+    assert page.total == 2
+    for j in page.items:
         assert j.tag == "odd"
 
 
-async def test_should_add_joke_and_return_joke_by_id(repository, session):
+async def test_should_add_joke_and_return_joke_by_id(repository):
     added = await repository.add_joke(make_dict_joke())
 
     found = await repository.get_joke_by_id(added.id)
@@ -49,11 +50,11 @@ async def test_should_return_none_if_joke_not_exists_by_id(repository):
     assert joke is None
 
 
-async def test_should_add_joke(repository, session):
+async def test_should_add_joke(repository):
     await repository.add_joke(make_dict_joke())
 
-    jokes = await repository.get_all_jokes()
-    assert len(jokes) == 1
+    page = await repository.get_all_jokes()
+    assert page.total == 1
 
 
 async def test_should_update_joke(repository, session):
@@ -72,8 +73,8 @@ async def test_should_delete_joke_returns_true(repository, session):
     result = await repository.delete_joke(added.id)
     await session.flush()
 
-    jokes = await repository.get_all_jokes()
-    assert len(jokes) == 0
+    page = await repository.get_all_jokes()
+    assert page.total == 0
     assert result
 
 
@@ -83,3 +84,17 @@ async def test_should_delete_joke_returns_false(repository, session):
     await session.flush()
 
     assert not result
+
+
+async def test_should_apply_limit_and_offset_in_sql(repository, session):
+    for i in range(30):
+        await repository.add_joke(make_dict_joke(setup=f"setup number {i}"))
+    await session.flush()
+
+    with set_params(Params(page=2, size=10)):
+        page = await repository.get_all_jokes()
+
+    assert page.total == 30
+    assert page.page == 2
+    assert page.pages == 3
+    assert len(page.items) == 10

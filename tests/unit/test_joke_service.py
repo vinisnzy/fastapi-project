@@ -85,7 +85,7 @@ async def test_should_return_true_if_joke_exists_by_id():
     repository = FakeJokeRepository(initials=[make_dict_joke()])
     service = JokeService(repository)
 
-    joke_id = (await repository.get_all_jokes())[0].id
+    joke_id = (await repository.get_all_jokes()).items[0].id
 
     exists = await service.exists_joke_by_id(joke_id)
 
@@ -106,7 +106,7 @@ async def test_should_return_joke_by_id():
     repository = FakeJokeRepository(initials=[make_dict_joke()])
     service = JokeService(repository)
 
-    joke_id = (await repository.get_all_jokes())[0].id
+    joke_id = (await repository.get_all_jokes()).items[0].id
 
     joke = await service.get_joke_by_id(joke_id)
 
@@ -131,7 +131,7 @@ async def test_should_add_joke():
 
     added_joke = await service.add_joke(JokeCreate(**make_dict_joke()))
 
-    joke = (await repository.get_all_jokes())[0]
+    joke = (await repository.get_all_jokes()).items[0]
 
     assert joke is not None
     assert joke.id == added_joke.id
@@ -144,7 +144,7 @@ async def test_should_update_joke():
     repository = FakeJokeRepository(initials=[make_dict_joke()])
     service = JokeService(repository)
 
-    joke = (await repository.get_all_jokes())[0]
+    joke = (await repository.get_all_jokes()).items[0]
 
     updated_tag = "updated_tag"
     updated_joke = await service.update_joke(joke.id, JokeUpdate(tag=updated_tag))
@@ -170,13 +170,13 @@ async def test_should_delete_joke():
     repository = FakeJokeRepository(initials=[make_dict_joke()])
     service = JokeService(repository)
 
-    joke_id = (await repository.get_all_jokes())[0].id
+    joke_id = (await repository.get_all_jokes()).items[0].id
 
     await service.delete_joke(joke_id)
 
-    jokes = await repository.get_all_jokes()
+    page = await repository.get_all_jokes()
 
-    assert len(jokes) == 0
+    assert page.total == 0
 
 
 async def test_should_raise_error_if_not_found_joke_by_id_when_delete_joke():

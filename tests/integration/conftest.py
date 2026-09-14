@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator
 
 import pytest
+from fastapi_pagination import Params, set_params
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.conftest import TEST_JWT_SECRET
 
@@ -11,7 +12,7 @@ from fastapi_project.models.base import Base
 
 @pytest.fixture(scope="session")
 def postgres_url():
-    from testcontainers.postgres import PostgresContainer
+    from testcontainers.community.postgres import PostgresContainer
 
     with PostgresContainer("postgres:17-alpine", driver="asyncpg") as pg:
         yield pg.get_connection_url()
@@ -42,3 +43,9 @@ async def session(engine) -> AsyncIterator[AsyncSession]:
         await sess.close()
         await trans.rollback()
         await conn.close()
+
+
+@pytest.fixture(autouse=True)
+def _pagination_params():
+    with set_params(Params(page=1, size=50)):
+        yield

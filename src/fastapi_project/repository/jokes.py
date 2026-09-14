@@ -1,8 +1,8 @@
 import uuid
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from typing import Any
 
+from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,11 +12,15 @@ from fastapi_project.models import Joke
 
 class IJokeRepository(ABC):
     @abstractmethod
-    async def get_all_jokes(self) -> Sequence[Joke]:
+    async def get_all_jokes(self) -> Page[Joke]:
         pass
 
     @abstractmethod
-    async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
+    async def get_jokes_by_tag(self, tag: str) -> Page[Joke]:
+        pass
+
+    @abstractmethod
+    async def get_random_joke(self, tag: str | None = None) -> Joke | None:
         pass
 
     @abstractmethod
@@ -42,11 +46,11 @@ class JokeRepository(IJokeRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_all_jokes(self) -> Sequence[Joke]:
+    async def get_all_jokes(self) -> Page[Joke]:
         stmt = select(Joke).order_by(Joke.created_at.desc(), Joke.id.desc())
         return await apaginate(self.session, stmt)
 
-    async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
+    async def get_jokes_by_tag(self, tag: str) -> Page[Joke]:
         stmt = (
             select(Joke)
             .where(Joke.tag == tag)

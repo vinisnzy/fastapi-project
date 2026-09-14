@@ -1,7 +1,11 @@
-from collections.abc import Sequence
 from datetime import UTC, datetime
+from random import choice
 from typing import Any
 from uuid import UUID, uuid4
+
+from fastapi_pagination import Page
+from fastapi_pagination.api import create_page
+from fastapi_pagination.utils import verify_params
 
 from fastapi_project.models import RefreshToken, User
 from fastapi_project.models.jokes import Joke
@@ -16,11 +20,25 @@ class FakeJokeRepository(IJokeRepository):
             jid = j.get("id") or uuid4()
             self.items[jid] = {**j, "id": jid}
 
-    async def get_all_jokes(self) -> Sequence[Joke]:
-        return [Joke(**j) for j in self.items.values()]
+    async def get_all_jokes(self) -> Page[Joke]:
+        rows = [Joke(**j) for j in self.items.values()]
+        params, raw = verify_params(None, "limit-offset")
+        return create_page(
+            rows[raw.offset : raw.offset + raw.limit], total=len(rows), params=params
+        )
 
-    async def get_jokes_by_tag(self, tag: str) -> Sequence[Joke]:
-        return [Joke(**j) for j in self.items.values() if j["tag"] == tag]
+    async def get_jokes_by_tag(self, tag: str) -> Page[Joke]:
+        rows = [Joke(**j) for j in self.items.values() if j["tag"] == tag]
+        params, raw = verify_params(None, "limit-offset")
+        return create_page(
+            rows[raw.offset : raw.offset + raw.limit], total=len(rows), params=params
+        )
+
+    async def get_random_joke(self, tag: str | None = None) -> Joke | None:
+        rows = [
+            Joke(**j) for j in self.items.values() if tag is None or j["tag"] == tag
+        ]
+        return choice(rows) if rows else None
 
     async def get_joke_by_id(self, joke_id: UUID) -> Joke | None:
         joke = self.items.get(joke_id)
