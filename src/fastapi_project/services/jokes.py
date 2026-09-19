@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi_pagination import Page
@@ -6,6 +7,8 @@ from fastapi_project.exceptions.exceptions import NotFoundError
 from fastapi_project.models.jokes import Joke
 from fastapi_project.repository.jokes import IJokeRepository
 from fastapi_project.schemas.jokes import JokeCreate, JokeUpdate
+
+logger = logging.getLogger(__name__)
 
 
 class JokeService:
@@ -35,7 +38,11 @@ class JokeService:
         return joke
 
     async def add_joke(self, joke: JokeCreate) -> Joke:
-        return await self.repository.add_joke(joke.model_dump())
+        created = await self.repository.add_joke(joke.model_dump())
+        logger.info(
+            "Joke created", extra={"event": "joke_created", "joke_id": str(created.id)}
+        )
+        return created
 
     async def update_joke(self, joke_id: uuid.UUID, payload: JokeUpdate) -> Joke:
         updatedJoke = await self.repository.update_joke(
@@ -43,8 +50,14 @@ class JokeService:
         )
         if not updatedJoke:
             raise NotFoundError("Joke", joke_id)
+        logger.info(
+            "Joke updated", extra={"event": "joke_updated", "joke_id": str(joke_id)}
+        )
         return updatedJoke
 
     async def delete_joke(self, joke_id: uuid.UUID) -> None:
         if not await self.repository.delete_joke(joke_id):
             raise NotFoundError("Joke", joke_id)
+        logger.info(
+            "Joke deleted", extra={"event": "joke_deleted", "joke_id": str(joke_id)}
+        )
