@@ -1,5 +1,4 @@
 import logging
-import traceback
 from datetime import UTC, datetime
 from typing import Any
 
@@ -10,6 +9,18 @@ from fastapi.responses import JSONResponse
 from fastapi_project.exceptions.exceptions import AppException
 
 logger = logging.getLogger(__name__)
+
+
+def error_log_fields(request: Request, code: str, status: int) -> dict[str, Any]:
+    return {
+        "event": "request_error",
+        "error_code": code,
+        "status_code": status,
+        "path": request.url.path,
+        "method": request.method,
+        "request_id": getattr(request.state, "request_id", None),
+    }
+
 
 ERROR_CODE_BY_STATUS = {
     400: "BAD_REQUEST",
@@ -43,12 +54,22 @@ def build_error_response(
 
 
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
-    logger.warning(
-        "Application error: %s - %s",
-        exc.error_code,
-        exc.message,
-        extra={"path": request.url.path, "method": request.method},
-    )
+    if not getattr(exc, "already_logged", False):
+        reason = getattr(exc, "log_reason", None) or {
+            "Not authenticated": "missing_credentials",
+            "Token expired": "access_token_expired",
+            "Invalid token": "invalid_access_token",
+            "Invalid refresh token": "invalid_refresh_token",
+            "Refresh token revoked": "revoked_refresh_token",
+            "Invalid credentials": "invalid_credentials",
+        }.get(exc.message)
+        logger.warning(
+            "Application error",
+            extra={
+                **error_log_fields(request, exc.error_code, exc.status_code),
+                **({"reason": reason} if reason else {}),
+            },
+        )
     return JSONResponse(
         status_code=exc.status_code,
         content=build_error_response(exc.error_code, exc.message, exc.details),
@@ -66,7 +87,10 @@ async def validation_exception_handler(
         }
         for error in exc.errors()
     ]
-    logger.warning("Validation error on %s", request.url.path)
+    logger.warning(
+        "Request validation failed",
+        extra=error_log_fields(request, "VALIDATION_ERROR", 422),
+    )
     return JSONResponse(
         status_code=422,
         content=build_error_response(
@@ -75,21 +99,23 @@ async def validation_exception_handler(
     )
 
 
-async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    code = ERROR_CODE_BY_STATUS.get(exc.status_code, "HTTP_ERROR")
+    logger.warning("HTTP error", extra=error_log_fields(request, code, exc.status_code))
     return JSONResponse(
         status_code=exc.status_code,
-        content=build_error_response(
-            ERROR_CODE_BY_STATUS.get(exc.status_code, "HTTP_ERROR"), str(exc.detail)
-        ),
+        content=build_error_response(code, str(exc.detail)),
     )
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error(
-        "Unhandled exception: %s: %s",
-        type(exc).__name__,
-        exc,
-        extra={"path": request.url.path, "traceback": traceback.format_exc()},
+        "Unhandled exception",
+        extra={
+            **error_log_fields(request, "INTERNAL_ERROR", 500),
+            "exception_type": type(exc).__name__,
+        },
+        exc_info=(type(exc), exc, exc.__traceback__),
     )
     return JSONResponse(
         status_code=500,

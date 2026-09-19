@@ -1,5 +1,6 @@
 import json
 import logging
+from contextvars import ContextVar
 from logging.config import dictConfig
 from typing import Any
 
@@ -8,6 +9,7 @@ _RESERVED = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | 
     "asctime",
     "taskName",
 }
+request_id_context: ContextVar[str | None] = ContextVar("request_id", default=None)
 
 
 class JsonFormatter(logging.Formatter):
@@ -18,6 +20,9 @@ class JsonFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
+        request_id = request_id_context.get()
+        if request_id:
+            payload["request_id"] = request_id
         payload.update({k: v for k, v in record.__dict__.items() if k not in _RESERVED})
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
@@ -42,8 +47,8 @@ def setup_logging(debug: bool = False) -> None:
             "loggers": {
                 "uvicorn": {"handlers": [], "propagate": True},
                 "uvicorn.error": {"handlers": [], "propagate": True},
-                "uvicorn.access": {"handlers": [], "propagate": True},
-                "sqlalchemy.engine": {"level": "INFO" if debug else "WARNING"},
+                "uvicorn.access": {"handlers": [], "propagate": False},
+                "sqlalchemy.engine": {"level": "WARNING"},
             },
         }
     )

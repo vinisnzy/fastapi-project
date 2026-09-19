@@ -12,7 +12,9 @@ from fastapi_project.core.config import Settings
 
 
 def build_engine(settings: Settings) -> AsyncEngine:
-    return create_async_engine(url=settings.DATABASE_URL, echo=settings.DEBUG)
+    return create_async_engine(
+        url=settings.DATABASE_URL, echo=False, hide_parameters=True
+    )
 
 
 def build_session_maker(engine: AsyncEngine) -> async_sessionmaker:
